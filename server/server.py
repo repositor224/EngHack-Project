@@ -20,10 +20,12 @@ class SensorData(BaseModel):
 
 
 def call_gemini(prompt: str):
+
     if not API_KEY:
+        print("No API key")
         return "AI offline", ""
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
 
     payload = {
         "contents": [
@@ -36,6 +38,7 @@ def call_gemini(prompt: str):
     }
 
     try:
+
         response = requests.post(
             url,
             params={"key": API_KEY},
@@ -43,26 +46,37 @@ def call_gemini(prompt: str):
             timeout=20
         )
 
-        result = response.json()
-
         if response.status_code != 200:
-            print("Gemini HTTP error:", response.status_code, result)
+            print("Gemini HTTP error:", response.status_code)
+            print(response.text)
             return "AI error", ""
 
+        result = response.json()
+
+        # 安全获取文本
         text = result["candidates"][0]["content"]["parts"][0]["text"]
 
-        # 清理可能出现的 ```json ``` 包裹
-        text = text.strip().replace("```json", "").replace("```", "")
+        # 清理 markdown
+        text = text.strip()
+        text = text.replace("```json", "")
+        text = text.replace("```", "")
 
-        parsed = json.loads(text)
+        try:
+            parsed = json.loads(text)
 
-        line1 = parsed.get("AIadvice1", "")[:16]
-        line2 = parsed.get("AIadvice2", "")[:16]
+            line1 = parsed.get("AIadvice1", "")[:16]
+            line2 = parsed.get("AIadvice2", "")[:16]
 
-        return line1, line2
+            return line1, line2
+
+        except Exception as parse_error:
+            print("JSON parse failed:", parse_error)
+            print("Raw Gemini output:", text)
+
+            return "AI parse fail", ""
 
     except Exception as e:
-        print("Gemini error:", e)
+        print("Gemini request error:", e)
         return "AI failed", ""
 
 
