@@ -2,6 +2,7 @@
 #include "Adafruit_VCNL4010.h"
 #include "LiquidCrystal.h"
 #include "Servo.h"
+#include "ArduinoJson.h"
 
 const int TMP_PIN = A0;
 const int BUTTON_PIN = 2;
@@ -27,6 +28,7 @@ void setup() {
     while (1);
   }
 
+
   pinMode(BUTTON_PIN, INPUT_PULLDOWN);
   pinMode(LED_PIN, OUTPUT);
 
@@ -42,6 +44,8 @@ void loop() {
   int raw_temp = analogRead(TMP_PIN);
   int temp = getTempC(raw_temp);
 
+  serialWrite(raw_light, temp);
+
   buttonToggle();
   // Serial.println("Push button: ");
   // Serial.println(button);
@@ -51,42 +55,50 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print(millis() / 1000);
 
-  rotate();
+  // rotate();
+
+  serialRead();
+
+  delay(500);
 }
 
 void rotate() {
-  if (servo_on) {
     for (servo_pos = 0; servo_pos <= 180; servo_pos += 1) {
       servo.write(servo_pos);
-      delay(300);
+      delay(100);
     }
     for (servo_pos = 180; servo_pos >= 0; servo_pos -= 1) {
       servo.write(servo_pos);
-      delay(300);
+      delay(100);
     }
-  } else {
-    servo.write(90);
-  }
 }
 
-// {light" #, temp: #}
+// {light" #, temperature: #}
 void serialWrite(int light, int temp) {
-  Serial.print(",\"light\":");
+  Serial.print("{\"light\":");
   Serial.print(light);
-  Serial.print(",\"temp\":");
+  Serial.print(",\"temperature\":");
   Serial.print(temp);
   Serial.println("}");
 }
+
 void serialRead() {
   if (Serial.available()) {
-    String cmd = Serial.readStringUntil('\n');
 
-    if (cmd == "LED_ON") {
-      digitalWrite(LED_PIN, HIGH);
+    String msg = Serial.readStringUntil('\n');
+
+    StaticJsonDocument<512> doc;
+
+    DeserializationError err = deserializeJson(doc, msg);
+
+    if (err) {
+      Serial.println("JSON parse failed");
+      return;
     }
-    if (cmd == "LED_OFF") {
-      digitalWrite(LED_PIN, LOW);
-    }
+
+    const char* advice = doc["ai_advice"];
+
+    displayMsg(advice);
   }
 }
 
@@ -99,6 +111,8 @@ int getTempC(int raw) {
   // Serial.print("Temp: ");
   // Serial.print(temp);
   // Serial.println(" C");
+
+  return temp;
 }
 
 void buttonToggle() {
@@ -110,4 +124,13 @@ void buttonToggle() {
   }
 
   last_button_state = button_state;
+}
+
+void displayMsg(String msg) {
+
+  lcd.clear();
+  lcd.begin(16, 2);
+  lcd.print(msg);
+
+  int len = msg.length();
 }
