@@ -8,14 +8,20 @@ BAUD = 9600
 
 SERVER_URL = "http://127.0.0.1:8000/data"
 
-BUFFER = []
-WINDOW = 60
-
-
 ser = serial.Serial(PORT, BAUD)
+
+BUFFER = []
+WINDOW = 30   # 30条数据≈1分钟
+
+print("Pipeline started")
+
+
+def send_command(cmd):
+    ser.write((cmd + "\n").encode())
 
 
 while True:
+
     line = ser.readline().decode().strip()
 
     try:
@@ -39,7 +45,22 @@ while True:
 
             r = requests.post(SERVER_URL, json=payload)
 
-            print("AI response:", r.json())
+            result = r.json()
+
+            print("AI:", result)
+
+            # ---------- Reverse pipeline ----------
+
+            advice = result.get("rule_based_comfort", "")
+
+            if advice == "too hot":
+                send_command("LED_ON")
+
+            elif advice == "low light":
+                send_command("LED_ON")
+
+            else:
+                send_command("LED_OFF")
 
             BUFFER.clear()
 
