@@ -51,10 +51,6 @@ void loop() {
   // Serial.println(button);
   // digitalWrite(LED_PIN, button);
 
-  /// LCD 
-  lcd.setCursor(0, 1);
-  lcd.print(millis() / 1000);
-
   // rotate();
 
   serialRead();
@@ -96,9 +92,10 @@ void serialRead() {
       return;
     }
 
-    const char* advice = doc["ai_advice"];
+    const char* advice1 = doc["AIadvice1"];
+    const char* advice2 = doc["AIadvice2"];
 
-    displayMsg(advice);
+    displayMsg(advice1, advice2);
   }
 }
 
@@ -126,11 +123,15 @@ void buttonToggle() {
   last_button_state = button_state;
 }
 
-void displayMsg(String msg) {
+void displayMsg(String msg1, String msg2) {
+
+  Serial.println(msg1);
+  Serial.println(msg2);
 
   lcd.clear();
-  lcd.begin(16, 2);
-  lcd.print(msg);
+  lcd.setCursor(0, 0);
+  lcd.print(msg1);
 
-  int len = msg.length();
+  lcd.setCursor(0, 1);
+  lcd.print(msg2);
 }
