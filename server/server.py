@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import os
 import requests
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,9 +19,9 @@ class SensorData(BaseModel):
     light: float
 
 
-def call_gemini(prompt: str) -> str:
+def call_gemini(prompt: str):
     if not API_KEY:
-        return "AI unavailable: missing API key"
+        return "AI offline", ""
 
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
 
@@ -46,13 +47,23 @@ def call_gemini(prompt: str) -> str:
 
         if response.status_code != 200:
             print("Gemini HTTP error:", response.status_code, result)
-            return "AI analysis failed"
+            return "AI error", ""
 
-        return result["candidates"][0]["content"]["parts"][0]["text"]
+        text = result["candidates"][0]["content"]["parts"][0]["text"]
+
+        # 清理可能出现的 ```json ``` 包裹
+        text = text.strip().replace("```json", "").replace("```", "")
+
+        parsed = json.loads(text)
+
+        line1 = parsed.get("AIadvice1", "")[:16]
+        line2 = parsed.get("AIadvice2", "")[:16]
+
+        return line1, line2
 
     except Exception as e:
         print("Gemini error:", e)
-        return "AI analysis failed"
+        return "AI failed", ""
 
 
 @app.get("/")
@@ -62,27 +73,44 @@ def root():
 
 @app.post("/data")
 def receive_data(data: SensorData):
+
     print("received:", data)
 
     comfort = "normal"
+
     if data.temperature > 25:
         comfort = "too hot"
+
     if data.light < 150:
         comfort = "low light"
 
     prompt = f"""
-You are an indoor environment assistant.
+You are an embedded device assistant.
 
 Temperature: {data.temperature} C
 Light level: {data.light}
 
-Give one short suggestion about whether this room is comfortable for studying or working.
+Return ONLY valid JSON.
+
+Rules:
+1. Output must be JSON
+2. Two fields only: AIadvice1 and AIadvice2
+3. Each line MAX 16 characters including spaces
+4. No explanation text
+5. No markdown
+
+Example format:
+{{
+"AIadvice1": "Good lighting",
+"AIadvice2": "Temp is normal"
+}}
 """
 
-    ai_advice = call_gemini(prompt)
+    line1, line2 = call_gemini(prompt)
 
     return {
         "status": "ok",
         "rule_based_comfort": comfort,
-        "ai_advice": ai_advice
+        "AIadvice1": line1,
+        "AIadvice2": line2
     }
