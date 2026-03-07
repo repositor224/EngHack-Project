@@ -7,11 +7,12 @@ PORT = "/dev/cu.usbmodem101"
 BAUD = 9600
 
 SERVER_URL = "http://127.0.0.1:8000/data"
+JSONL_FILE = "sensor_stream.jsonl"
 
 ser = serial.Serial(PORT, BAUD)
 
 BUFFER = []
-WINDOW = 30   # 30条数据≈1分钟
+WINDOW = 30
 
 print("Pipeline started")
 
@@ -31,6 +32,10 @@ while True:
 
         print("sensor:", data)
 
+        # 写入 jsonl
+        with open(JSONL_FILE, "a") as f:
+            f.write(json.dumps(data) + "\n")
+
         if len(BUFFER) >= WINDOW:
 
             avg_temp = sum(d["temperature"] for d in BUFFER) / len(BUFFER)
@@ -49,8 +54,6 @@ while True:
 
             print("AI:", result)
 
-            # ---------- Reverse pipeline ----------
-
             advice = result.get("rule_based_comfort", "")
 
             if advice == "too hot":
@@ -64,5 +67,5 @@ while True:
 
             BUFFER.clear()
 
-    except:
-        pass
+    except Exception as e:
+        print("parse error:", e)
