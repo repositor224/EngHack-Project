@@ -2,6 +2,7 @@ import serial
 import json
 import time
 import requests
+import re
 
 PORT = "/dev/cu.usbmodem101"
 BAUD = 9600
@@ -12,10 +13,13 @@ JSONL_FILE = "sensor_stream.jsonl"
 ser = serial.Serial(PORT, BAUD)
 
 BUFFER = []
-WINDOW = 30
+WINDOW = 120
 
 print("Pipeline started")
 
+JSON_PATTERN = re.compile(
+    r'^\{"light":-?\d+,"temperature":-?\d+\}$'
+)
 
 def send_command(cmd):
     ser.write((cmd + "\n").encode())
@@ -23,7 +27,13 @@ def send_command(cmd):
 
 while True:
 
-    line = ser.readline().decode().strip()
+    line = ser.readline().decode(errors="ignore").strip()
+
+    if not line:
+        continue
+
+    if not JSON_PATTERN.match(line):
+        continue
 
     try:
         data = json.loads(line)
@@ -32,7 +42,6 @@ while True:
 
         print("sensor:", data)
 
-        # 写入 jsonl
         with open(JSONL_FILE, "a") as f:
             f.write(json.dumps(data) + "\n")
 
@@ -58,14 +67,12 @@ while True:
 
             if advice == "too hot":
                 send_command("LED_ON")
-
             elif advice == "low light":
                 send_command("LED_ON")
-
             else:
                 send_command("LED_OFF")
 
             BUFFER.clear()
 
     except Exception as e:
-        print("parse error:", e)
+        print("pipeline error:", e)
