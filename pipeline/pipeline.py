@@ -8,7 +8,7 @@ PORT = "/dev/cu.usbmodem101"
 BAUD = 9600
 
 SERVER_URL = "http://127.0.0.1:8000/data"
-JSONL_FILE = "sensor_stream.jsonl"
+JSONL_FILE = "data/sensor_stream.jsonl"
 
 ser = serial.Serial(PORT, BAUD)
 
