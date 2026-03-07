@@ -25,8 +25,7 @@ def call_gemini(prompt: str):
         print("No API key")
         return "AI offline", ""
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
-
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
     payload = {
         "contents": [
             {

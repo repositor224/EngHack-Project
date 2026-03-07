@@ -16,9 +16,11 @@ Adafruit_VCNL4010 vcnl;
 Servo servo;
 
 int servo_pos = 90;
-bool servo_on = false; //rotation on/off
+int servo_dir = 0;
+// bool servo_on = false; //rotation on/off
+int last_servo_move = 0;
 
-bool last_button_state = LOW;
+int last_button_state = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -46,12 +48,12 @@ void loop() {
 
   serialWrite(raw_light, temp);
 
-  buttonToggle();
+  // buttonToggle();
   // Serial.println("Push button: ");
   // Serial.println(button);
   // digitalWrite(LED_PIN, button);
 
-  // rotate();
+  rotate();
 
   serialRead();
 
@@ -59,14 +61,16 @@ void loop() {
 }
 
 void rotate() {
-    for (servo_pos = 0; servo_pos <= 180; servo_pos += 1) {
-      servo.write(servo_pos);
-      delay(100);
+  if (millis() - last_servo_move >= 100) {
+    servo_pos += servo_dir ? 5 : -5;
+    if (servo_pos >= 180) {
+      servo_dir = 0;
+    } else if (servo_pos == 0) {
+      servo_dir = 1;
     }
-    for (servo_pos = 180; servo_pos >= 0; servo_pos -= 1) {
-      servo.write(servo_pos);
-      delay(100);
-    }
+    servo.write(servo_pos);
+    last_servo_move = millis();
+  }
 }
 
 // {light" #, temperature: #}
@@ -112,16 +116,16 @@ int getTempC(int raw) {
   return temp;
 }
 
-void buttonToggle() {
-  bool button_state = digitalRead(BUTTON_PIN);
+// void buttonToggle() {
+//   int button_state = digitalRead(BUTTON_PIN);
 
-  if (last_button_state == LOW && button_state == HIGH) {
-    servo_on = !servo_on;
-    delay(20);
-  }
+//   if (last_button_state == LOW && button_state == HIGH) {
+//     servo_on = !servo_on;
+//     delay(20);
+//   }
 
-  last_button_state = button_state;
-}
+//   last_button_state = button_state;
+// }
 
 void displayMsg(String msg1, String msg2) {
 

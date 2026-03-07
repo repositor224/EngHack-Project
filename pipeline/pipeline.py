@@ -13,7 +13,7 @@ JSONL_FILE = "data/sensor_stream.jsonl"
 ser = serial.Serial(PORT, BAUD)
 
 BUFFER = []
-WINDOW = 120
+WINDOW = 30
 
 print("Pipeline started")
 
@@ -62,6 +62,8 @@ while True:
             result = r.json()
 
             print("AI:", result)
+
+            ser.write((json.dumps(result) + "\n").encode())
 
             advice = result.get("rule_based_comfort", "")
 
