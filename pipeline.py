@@ -1,20 +1,18 @@
 import serial
 import json
-import requests
 
-ser = serial.Serial('/dev/ttyUSB0', 9600)
-
-API_URL = "https://your-api-endpoint"
+ser = serial.Serial("/dev/cu.usbmodem101",9600)
 
 while True:
-    line = ser.readline().decode().strip()
+
+    line = ser.readline().decode(errors="ignore").strip()
+
+    if not line.startswith("{"):
+        continue
 
     try:
         data = json.loads(line)
+        print("data:", data)
 
-        r = requests.post(API_URL, json=data)
-
-        print("sent:", data, r.status_code)
-
-    except:
+    except Exception:
         print("invalid data:", line)

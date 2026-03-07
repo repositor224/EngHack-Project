@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include "Adafruit_VCNL4010.h"
 #include "LiquidCrystal.h"
-#include "Arduino"
 
 const int TMP_PIN = A0;
 const int BUTTON_PIN = 2;
@@ -14,13 +13,11 @@ Adafruit_VCNL4010 vcnl;
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("VCNL4010 test");
 
   if (! vcnl.begin()){
     Serial.println("Sensor not found :(");
     while (1);
   }
-  Serial.println("Found VCNL4010");
 
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
@@ -33,7 +30,7 @@ void setup() {
 
 void loop() {
   // int raw_temp = analogRead(TMP_PIN);
-  // int raw_light = vcnl.readAmbient();
+  int raw_light = vcnl.readAmbient();
 
   // Serial.print("Ambient(light): "); Serial.println(raw_light);
 
@@ -51,7 +48,7 @@ void loop() {
   // Serial.println(button);
 
   digitalWrite(LED_PIN, button);
-  delay(500);
+  delay(3000);
   // digitalWrite(LED_PIN, HIGH);
   // delay(500);
 
@@ -64,7 +61,7 @@ void loop() {
   Serial.print(button);
   Serial.print(",\"light\":");
   Serial.print(raw_light);
-  Serial.print(",\"temp\":");
-  Serial.print(raw_temp);
+  // Serial.print(",\"temp\":");
+  // Serial.print(raw_temp);
   Serial.println("}");
 }
