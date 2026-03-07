@@ -14,7 +14,10 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 Adafruit_VCNL4010 vcnl;
 Servo servo;
 
-int servo_pos = 0;
+int servo_pos = 90;
+bool servo_on = false; //rotation on/off
+
+bool last_button_state = LOW;
 
 void setup() {
   Serial.begin(9600);
@@ -24,7 +27,7 @@ void setup() {
     while (1);
   }
 
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(BUTTON_PIN, INPUT_PULLDOWN);
   pinMode(LED_PIN, OUTPUT);
 
   lcd.begin(16, 2);
@@ -39,7 +42,7 @@ void loop() {
   int raw_temp = analogRead(TMP_PIN);
   int temp = getTempC(raw_temp);
 
-  int button = digitalRead(2);
+  buttonToggle();
   // Serial.println("Push button: ");
   // Serial.println(button);
   // digitalWrite(LED_PIN, button);
@@ -48,17 +51,21 @@ void loop() {
   lcd.setCursor(0, 1);
   lcd.print(millis() / 1000);
 
-  // rotate();
+  rotate();
 }
 
 void rotate() {
-  for (servo_pos = 0; servo_pos <= 180; servo_pos += 1) {
-    servo.write(servo_pos);
-    delay(15);
-  }
-  for (servo_pos = 180; servo_pos >= 0; servo_pos -= 1) {
-    servo.write(servo_pos);
-    delay(15);
+  if (servo_on) {
+    for (servo_pos = 0; servo_pos <= 180; servo_pos += 1) {
+      servo.write(servo_pos);
+      delay(300);
+    }
+    for (servo_pos = 180; servo_pos >= 0; servo_pos -= 1) {
+      servo.write(servo_pos);
+      delay(300);
+    }
+  } else {
+    servo.write(90);
   }
 }
 
@@ -92,4 +99,15 @@ int getTempC(int raw) {
   // Serial.print("Temp: ");
   // Serial.print(temp);
   // Serial.println(" C");
+}
+
+void buttonToggle() {
+  bool button_state = digitalRead(BUTTON_PIN);
+
+  if (last_button_state == LOW && button_state == HIGH) {
+    servo_on = !servo_on;
+    delay(20);
+  }
+
+  last_button_state = button_state;
 }
