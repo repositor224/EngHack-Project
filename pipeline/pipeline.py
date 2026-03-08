@@ -4,7 +4,7 @@ import time
 import requests
 import re
 
-PORT = "/dev/cu.usbmodem101"
+PORT = "/dev/cu.usbmodem1101"
 BAUD = 9600
 
 SERVER_URL = "http://127.0.0.1:8000/data"
