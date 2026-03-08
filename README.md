@@ -9,7 +9,6 @@ In Canada, about **15% of people experience mild SAD** during their lifetime, wh
 If untreated, SAD can significantly affect daily functioning and, in severe cases, may lead to **suicidal thoughts or behaviors**, highlighting the importance of early monitoring and intervention [5].
 
 ---
-
 ## Brainstorming
 
 We developed our solution by identifying common causes of Seasonal Affective Disorder. We found that **insufficient light exposure** and **unsuitable indoor temperature** can contribute to depression and anxiety during winter. Therefore, we designed a system that **automatically adjusts these environmental conditions** to help reduce the risk of SAD.
@@ -44,17 +43,122 @@ The system then **automatically adjusts indoor lighting** and provides feedback 
 This solution is especially helpful for **elderly or disabled individuals**, particularly when a caretaker is not present.
 
 ---
+## Hardware Components
+
+- Arduino / Microcontroller
+- Temperature sensor
+- Light sensor
+- Servo motor (for 360° rotation)
+- LCD display
+- Control button
+
+---
+
+## How to Use
+
+### 1. Power On the Device
+Connect the device to a power source and turn it on. The LCD screen will initialize and begin displaying environmental data.
+
+### 2. Automatic Environmental Scanning
+Once powered on, the device will begin rotating **360 degrees** to scan the surrounding environment.  
+The sensors continuously measure:
+
+- **Light intensity**
+- **Room temperature**
+
+These measurements are collected and stored for environmental analysis.
+
+### 3. Environmental Analysis
+The system analyzes the collected data to determine whether the current lighting and temperature conditions are suitable for reducing the risk of Seasonal Affective Disorder.
+
+If the lighting level is too low, the system will recommend increasing indoor lighting or automatically adjust connected lighting devices (if available).
+
+### 4. Manual Adjustment
+Users can press the **control button** to immediately adjust lighting and temperature settings.
+
+The system will record this preference and incorporate it into future environmental analysis to improve personalization.
+
+### 5. Continuous Monitoring
+The device continues monitoring environmental conditions in real time and updates recommendations on the LCD display.
+
+---
+
+## Example Use Case
+
+1. Place the device near a **window or central area of a room**.  
+2. Turn on the device and allow it to scan the room environment.  
+3. The device detects **low light levels during winter mornings**.  
+4. The system recommends increasing lighting or automatically adjusts the room lighting.  
+5. The user presses the button to confirm the preferred lighting level.  
+6. The system stores this preference for future adjustments.
+
+## Installation
+
+Before running the system, install the required Python packages.
+
+```bash
+pip install fastapi
+pip install uvicorn
+pip install requests
+pip install python-dotenv
+```
+
+If your project processes sensor data or performs analysis, you may also need:
+
+```bash
+
+pip install numpy
+pip install pandas
+```
+
+## API Setup
+
+This project uses the Google Gemini API for AI-based analysis.
+
+1. Go to Google AI Studio / Google Cloud Console
+
+2. Generate an API Key
+
+3. Save the key in an environment variable:
+
+```bash
+export GEMINI_API_KEY=your_api_key_here
+```
+
+Or create a `.env` file:
+
+```python
+GEMINI_API_KEY=your_api_key_here
+```
+
+## Running the Backend Server
+
+Start the FastAPI backend server:
+
+```bash
+uvicorn main:app --reload
+```
+
+This will start the API server locally at:
+```
+http://127.0.0.1:8000
+```
+
+You can access the interactive API documentation at:
+
+```
+http://127.0.0.1:8000/docs
+```
+
+
+---
 
 ## Accessibility Features
 
 To ensure the device is usable by people with different needs, the system includes several accessibility features:
 
-- **Large-text display**
 - **High-contrast interface**
 - **Support for homes without WiFi**
-- **Simple button-based interaction**
-
-Users can press a button to immediately adjust temperature and lighting. The system will **record these preferences and incorporate them into future environmental analysis**, allowing personalized comfort settings.
 
 ---
 
